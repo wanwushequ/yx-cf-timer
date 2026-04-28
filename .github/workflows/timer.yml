@@ -16,13 +16,13 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Update timestamp in worker.js (Beijing Time)
+      - name: Update timestamp in _worker.js (Beijing Time)
         run: |
           # 获取北京时间（UTC+8）
           BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
           
           # 修改 worker.js 中的注释
-          sed -i "s/\/\/ Last auto-trigger: .*/\/\/ Last auto-trigger: $BEIJING_TIME (Beijing Time)/" worker.js
+          sed -i "s/\/\/ Last auto-trigger: .*/\/\/ Last auto-trigger: $BEIJING_TIME (Beijing Time)/" _worker.js
           
           echo "✅ Updated timestamp to: $BEIJING_TIME (北京时间)"
       
@@ -30,6 +30,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add worker.js
+          git add _worker.js
           git diff --staged --quiet || git commit -m "chore: auto-trigger deploy at $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S') (Beijing Time)"
           git push
