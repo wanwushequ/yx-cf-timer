@@ -1,35 +1,37 @@
-name: Touch Worker File
+name: Deploy Worker Every 6 Hours
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
-  modify-comment:
+  deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # 需要写入权限
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Update timestamp in worker.js (Beijing Time)
+      - name: Deploy Worker via Cloudflare API
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_WORKER_NAME: ${{ secrets.CF_WORKER_NAME }}
         run: |
-          # 获取北京时间（UTC+8）
-          BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
+          # 读取 worker.js 内容
+          WORKER_CODE=$(cat worker.js)
           
-          # 修改 worker.js 中的注释
-          sed -i "s/\/\/ Last auto-trigger: .*/\/\/ Last auto-trigger: $BEIJING_TIME (Beijing Time)/" worker.js
-          
-          echo "✅ Updated timestamp to: $BEIJING_TIME (北京时间)"
+          # 调用 Cloudflare API 部署
+          curl -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME}" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/javascript" \
+            --data "$WORKER_CODE" \
+            --fail \
+            --retry 3 \
+            --retry-delay 5
       
-      - name: Commit and push changes
+      - name: Verify deployment
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add worker.js
-          git diff --staged --quiet || git commit -m "chore: auto-trigger deploy at $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S') (Beijing Time)"
-          git push
+          echo "✅ Worker ${{ secrets.CF_WORKER_NAME }} 已重新部署"
+          echo "⏰ 下次部署时间：$(TZ='Asia/Shanghai' date -d '+6 hours' '+%Y-%m-%d %H:%M:%S')"
