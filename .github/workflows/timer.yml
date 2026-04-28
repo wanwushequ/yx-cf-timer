@@ -1,4 +1,4 @@
-name: Deploy Worker Every 6 Hours
+name: Refresh Worker Every 6 Hours
 
 on:
   schedule:
@@ -6,32 +6,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Install Wrangler
+        run: npm install -g wrangler
       
-      - name: Deploy Worker via Cloudflare API
+      - name: Get current version ID and rollback to itself
         env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CF_WORKER_NAME: ${{ secrets.CF_WORKER_NAME }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         run: |
-          # 读取 worker.js 内容
-          WORKER_CODE=$(cat _worker.js)
+          # 列出所有版本，获取第一个（最新）的版本 ID
+          VERSIONS=$(npx wrangler versions list --json)
+          LATEST_VERSION=$(echo "$VERSIONS" | jq -r '.[0].version_id')
           
-          # 调用 Cloudflare API 部署
-          curl -X PUT \
-            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME}" \
-            -H "Authorization: Bearer ${CF_API_TOKEN}" \
-            -H "Content-Type: application/javascript" \
-            --data "$WORKER_CODE" \
-            --fail \
-            --retry 3 \
-            --retry-delay 5
-      
-      - name: Verify deployment
-        run: |
-          echo "✅ Worker ${{ secrets.CF_WORKER_NAME }} 已重新部署"
-          echo "⏰ 下次部署时间：$(TZ='Asia/Shanghai' date -d '+6 hours' '+%Y-%m-%d %H:%M:%S')"
+          echo "当前最新版本: $LATEST_VERSION"
+          
+          # Rollback 到当前版本（会创建一个新的部署）
+          npx wrangler rollback "$LATEST_VERSION"
+          
+          echo "✅ Worker 已刷新部署"
