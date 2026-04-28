@@ -9,20 +9,24 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Wrangler
-        run: npm install -g wrangler
-      
-      - name: Update secret to trigger redeploy
+      - name: Update environment variable to trigger redeploy
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_WORKER_NAME: ${{ secrets.CF_WORKER_NAME }}
         run: |
-          WORKER_NAME="${{ secrets.CF_WORKER_NAME }}"
           BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
           
-          # 用 wrangler secret put，通过 --name 指定项目
-          echo "$BEIJING_TIME" | npx wrangler secret put LAST_REFRESH \
-            --name "$WORKER_NAME"
+          # 正确的 API 端点修改环境变量
+          curl -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME}/bindings" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"LAST_REFRESH\",
+              \"type\": \"plain_text\",
+              \"text\": \"$BEIJING_TIME\"
+            }" \
+            --fail
           
-          echo "✅ Worker: $WORKER_NAME"
-          echo "✅ Secret LAST_REFRESH 已更新为: $BEIJING_TIME"
-          echo "✅ Worker 将自动重新部署"
+          echo "✅ 环境变量 LAST_REFRESH 已更新为: $BEIJING_TIME"
