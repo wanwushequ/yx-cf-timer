@@ -9,7 +9,7 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Update environment variables (preserve others)
+      - name: Update environment variables
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
@@ -18,13 +18,10 @@ jobs:
         run: |
           BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
           
-          # 同时更新两个变量：LAST_REFRESH 和 GITHUB_TOKEN
+          # 使用单引号包裹整个 JSON，内部用双引号
           curl -X PATCH \
             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME}/settings" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
-            -F "settings={\"bindings\":[
-              {\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"$BEIJING_TIME\"},
-              {\"name\":\"GITHUB_TOKEN\",\"type\":\"plain_text\",\"text\":\"${GITHUB_TOKEN}\"}
-            ]}" || true
+            -F "settings={\"bindings\":[{\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"${BEIJING_TIME}\"},{\"name\":\"GITHUB_TOKEN\",\"type\":\"plain_text\",\"text\":\"${GITHUB_TOKEN}\"}]}"
           
-          echo "✅ 环境变量已更新: LAST_REFRESH=$BEIJING_TIME
+          echo "✅ 环境变量已更新"
