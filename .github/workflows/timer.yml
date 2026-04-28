@@ -19,7 +19,7 @@ jobs:
           CF_WORKER_NAME: ${{ secrets.CF_WORKER_NAME }}
         run: |
           # 读取 worker.js 内容
-          WORKER_CODE=$(cat worker.js)
+          WORKER_CODE=$(cat _worker.js)
           
           # 调用 Cloudflare API 部署
           curl -X PUT \
