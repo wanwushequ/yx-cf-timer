@@ -9,19 +9,24 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Wrangler
-        run: npm install -g wrangler
-      
-      - name: Update secret to trigger redeploy
+      - name: Update environment variable (preserve others)
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_WORKER_NAME: ${{ secrets.CF_WORKER_NAME }}
         run: |
           BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
           
-          # wrangler 会自动处理保留其他变量
-          echo "$BEIJING_TIME" | npx wrangler secret put LAST_REFRESH \
-            --name "${{ secrets.CF_WORKER_NAME }}" \
-            --account-id "${{ secrets.CF_ACCOUNT_ID }}"
+          # PATCH /bindings 只传要修改的变量
+          curl -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME}/bindings" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"LAST_REFRESH\",
+              \"type\": \"plain_text\",
+              \"text\": \"$BEIJING_TIME\"
+            }" \
+            --fail
           
           echo "✅ 环境变量已更新: $BEIJING_TIME"
