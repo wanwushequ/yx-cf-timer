@@ -9,19 +9,31 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Update environment variables
+      - name: Update environment variables for both workers
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CF_WORKER_NAME: ${{ secrets.CF_WORKER_NAME }}
+          CF_WORKER_NAME_1: ${{ secrets.CF_WORKER_NAME_1 }}
+          CF_WORKER_NAME_2: ${{ secrets.CF_WORKER_NAME_2 }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
           
-          # 使用单引号包裹整个 JSON，内部用双引号
+          # 更新第一个项目
+          echo "🚀 更新项目 1: ${CF_WORKER_NAME_1}"
           curl -X PATCH \
-            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME}/settings" \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_1}/settings" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -F "settings={\"bindings\":[{\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"${BEIJING_TIME}\"},{\"name\":\"GITHUB_TOKEN\",\"type\":\"secret_text\",\"text\":\"${GITHUB_TOKEN}\"}]}"
           
-          echo "✅ 环境变量已更新"
+          echo "✅ 项目 1 更新完成"
+          
+          # 更新第二个项目
+          echo "🚀 更新项目 2: ${CF_WORKER_NAME_2}"
+          curl -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_2}/settings" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -F "settings={\"bindings\":[{\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"${BEIJING_TIME}\"},{\"name\":\"GITHUB_TOKEN\",\"type\":\"secret_text\",\"text\":\"${GITHUB_TOKEN}\"}]}"
+          
+          echo "✅ 项目 2 更新完成"
+          echo "✅ 两个项目环境变量已更新完成"
