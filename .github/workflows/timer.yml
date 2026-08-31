@@ -19,7 +19,7 @@ jobs:
         run: |
           BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
           
-          # 更新第一个项目
+          # 更新第1个项目
           echo "🚀 更新项目 1: ${CF_WORKER_NAME_1}"
           curl -X PATCH \
             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_1}/settings" \
@@ -28,12 +28,16 @@ jobs:
           
           echo "✅ 项目 1 更新完成"
           
-          # 更新第二个项目
+          # 更新第2个项目
           echo "🚀 更新项目 2: ${CF_WORKER_NAME_2}"
           curl -X PATCH \
             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_2}/settings" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -F "settings={\"bindings\":[{\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"${BEIJING_TIME}\"},{\"name\":\"GITHUB_TOKEN\",\"type\":\"secret_text\",\"text\":\"${GITHUB_TOKEN}\"}]}"
           
-          echo "✅ 项目 2 更新完成"
-          echo "✅ 两个项目环境变量已更新完成"
+          # 更新第3个项目
+          echo "🚀 更新项目 3: ${CF_WORKER_NAME_3}"
+          curl -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_2}/settings" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -F "settings={\"bindings\":[{\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"${BEIJING_TIME}\"},{\"name\":\"GITHUB_TOKEN\",\"type\":\"secret_text\",\"text\":\"${GITHUB_TOKEN}\"}]}"          
