@@ -39,6 +39,6 @@ jobs:
           # 更新第3个项目
           echo "🚀 更新项目 3: ${CF_WORKER_NAME_3}"
           curl -X PATCH \
-            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_2}/settings" \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_3}/settings" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -F "settings={\"bindings\":[{\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"${BEIJING_TIME}\"},{\"name\":\"GITHUB_TOKEN\",\"type\":\"secret_text\",\"text\":\"${GITHUB_TOKEN}\"}]}"          
