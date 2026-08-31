@@ -15,6 +15,7 @@ jobs:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_WORKER_NAME_1: ${{ secrets.CF_WORKER_NAME_1 }}
           CF_WORKER_NAME_2: ${{ secrets.CF_WORKER_NAME_2 }}
+          CF_WORKER_NAME_3: ${{ secrets.CF_WORKER_NAME_3 }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
