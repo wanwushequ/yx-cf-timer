@@ -16,6 +16,7 @@ jobs:
           CF_WORKER_NAME_1: ${{ secrets.CF_WORKER_NAME_1 }}
           CF_WORKER_NAME_2: ${{ secrets.CF_WORKER_NAME_2 }}
           CF_WORKER_NAME_3: ${{ secrets.CF_WORKER_NAME_3 }}
+          CF_WORKER_NAME_4: ${{ secrets.CF_WORKER_NAME_4 }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
@@ -42,3 +43,10 @@ jobs:
             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_3}/settings" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -F "settings={\"bindings\":[{\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"${BEIJING_TIME}\"},{\"name\":\"GITHUB_TOKEN\",\"type\":\"secret_text\",\"text\":\"${GITHUB_TOKEN}\"}]}"          
+          
+          # 更新第4个项目
+          echo "🚀 更新项目 4: ${CF_WORKER_NAME_4}"
+          curl -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${CF_WORKER_NAME_4}/settings" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -F "settings={\"bindings\":[{\"name\":\"LAST_REFRESH\",\"type\":\"plain_text\",\"text\":\"${BEIJING_TIME}\"},{\"name\
